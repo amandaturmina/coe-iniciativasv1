@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-atrio: #1D6B4A;
+  --color-atrio-light: #E1F5EE;
+  --color-atrio-medium: #2D9B6E;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    @apply text-gray-800;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-atrio text-white px-4 py-2 rounded-lg font-medium hover:bg-atrio-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply bg-white text-atrio border border-atrio px-4 py-2 rounded-lg font-medium hover:bg-atrio-light transition-colors;
+  }
+  .input-base {
+    @apply w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-atrio focus:border-transparent transition-shadow;
+  }
+  .label-base {
+    @apply block text-sm font-medium text-gray-700 mb-1;
+  }
+  .card {
+    @apply bg-white rounded-xl border border-gray-200 shadow-sm;
+  }
+}
