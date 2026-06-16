@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { AtriaMark } from '@/components/AtrioBrandLogo'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -10,16 +11,13 @@ export default function LoginPage() {
   const [senha, setSenha] = useState('')
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState('')
-
   const supabase = createClient()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setCarregando(true)
     setErro('')
-
     const { error } = await supabase.auth.signInWithPassword({ email, password: senha })
-
     if (error) {
       setErro('E-mail ou senha incorretos.')
     } else {
@@ -29,61 +27,71 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-atrio to-atrio-dark p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-atrio-light rounded-full mb-4">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <path d="M16 4L28 10V22L16 28L4 22V10L16 4Z" stroke="#1D6B4A" strokeWidth="2" fill="#E1F5EE"/>
-              <path d="M16 10L22 13V19L16 22L10 19V13L16 10Z" fill="#1D6B4A"/>
-            </svg>
+    <div className="min-h-screen flex items-center justify-center bg-atrio p-4">
+      <div className="w-full max-w-sm">
+        {/* Logo */}
+        <div className="flex flex-col items-center mb-10">
+          <AtriaMark size={52} color="#FFFFFF" />
+          <div className="mt-3 text-center leading-none">
+            <p className="font-semibold tracking-widest uppercase text-xl text-white">Atrio</p>
+            <p className="tracking-[0.2em] uppercase text-[10px] text-white/50 mt-0.5">
+              Hotel <span className="text-atrio-accent font-medium">Management</span>
+            </p>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">COE Atrio</h1>
-          <p className="text-sm text-gray-500 mt-1">Acesso exclusivo para gestores e liderança</p>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="email" className="label-base">E-mail corporativo</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              className="input-base"
-              placeholder="seu.nome@atriohoteis.com.br"
-              required
-              autoFocus
-            />
-          </div>
+        {/* Card */}
+        <div className="bg-white rounded-2xl p-8">
+          <h2 className="text-base font-semibold text-gray-900 mb-1">Entrar no sistema</h2>
+          <p className="text-sm text-gray-400 mb-6">Acesso exclusivo para gestores e liderança.</p>
 
-          <div className="mb-4">
-            <label htmlFor="senha" className="label-base">Senha</label>
-            <input
-              id="senha"
-              type="password"
-              value={senha}
-              onChange={e => setSenha(e.target.value)}
-              className="input-base"
-              placeholder="••••••••"
-              required
-            />
-          </div>
-
-          {erro && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-              {erro}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="email" className="label-base">E-mail corporativo</label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="input-base"
+                placeholder="seu.nome@atriohoteis.com.br"
+                required
+                autoFocus
+              />
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={carregando || !email || !senha}
-            className="btn-primary w-full py-3"
-          >
-            {carregando ? 'Entrando...' : 'Entrar'}
-          </button>
-        </form>
+            <div>
+              <label htmlFor="senha" className="label-base">Senha</label>
+              <input
+                id="senha"
+                type="password"
+                value={senha}
+                onChange={e => setSenha(e.target.value)}
+                className="input-base"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            {erro && (
+              <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+                {erro}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={carregando || !email || !senha}
+              className="btn-primary w-full py-2.5 mt-2"
+            >
+              {carregando ? 'Entrando...' : 'Entrar'}
+            </button>
+          </form>
+        </div>
+
+        <p className="text-center text-xs text-white/30 mt-6">
+          COE — Centro de Excelência Operacional
+        </p>
       </div>
     </div>
   )

@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { AtriaMark } from '@/components/AtrioBrandLogo'
 
 const STATUS_INFO: Record<string, { label: string; cor: string; descricao: string }> = {
   recebida: {
@@ -151,25 +152,32 @@ function AcompanharContent() {
 
 export default function AcompanharPage() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="bg-atrio text-white shadow-md">
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <header className="bg-atrio text-white">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-atrio-light rounded-full flex items-center justify-center">
-              <span className="text-atrio font-bold text-sm">C</span>
+          <div className="flex items-center gap-2.5">
+            <AtriaMark size={26} color="#FFFFFF" />
+            <div className="leading-none">
+              <p className="font-semibold tracking-widest uppercase text-sm text-white">Atrio</p>
+              <p className="tracking-[0.15em] uppercase text-[9px] text-white/50">
+                COE <span className="text-atrio-accent font-medium">Iniciativas</span>
+              </p>
             </div>
-            <span className="font-semibold text-lg">COE Atrio</span>
           </div>
           <Link
             href="/submeter"
-            className="text-sm text-white/80 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors"
+            className="text-xs text-white/60 hover:text-white px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors"
           >
             Submeter iniciativa
           </Link>
         </div>
       </header>
 
-      <Suspense fallback={<div className="flex-1 flex items-center justify-center"><div className="w-8 h-8 border-4 border-atrio border-t-transparent rounded-full animate-spin" /></div>}>
+      <Suspense fallback={
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-6 h-6 border-2 border-atrio border-t-transparent rounded-full animate-spin" />
+        </div>
+      }>
         <AcompanharContent />
       </Suspense>
     </div>
