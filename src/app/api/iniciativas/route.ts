@@ -5,9 +5,10 @@ import { gerarProtocolo } from '@/lib/gerarProtocolo'
 import { calcularScore } from '@/lib/calcularScore'
 
 export async function POST(req: NextRequest) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ erro: 'Não autorizado' }, { status: 401 })
+  const serviceClient = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
 
   try {
     const formData = await req.formData()
@@ -16,7 +17,7 @@ export async function POST(req: NextRequest) {
     const arquivos = formData.getAll('anexos') as File[]
 
     // Contar iniciativas para gerar protocolo
-    const { count } = await supabase
+    const { count } = await serviceClient
       .from('iniciativas')
       .select('*', { count: 'exact', head: true })
 
@@ -30,7 +31,7 @@ export async function POST(req: NextRequest) {
     })
 
     // Inserir iniciativa
-    const { data: iniciativa, error } = await supabase
+    const { data: iniciativa, error } = await serviceClient
       .from('iniciativas')
       .insert({
         protocolo,
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest) {
         terceiros: dadosRaw.terceiros,
         riscos: riscosRaw.filter((r: { descricao: string }) => r.descricao),
         eap: dadosRaw.eap,
-        submetido_por: user.id,
+        submetido_por: null,
         score,
         status: 'Recebida',
       })
@@ -67,10 +68,6 @@ export async function POST(req: NextRequest) {
     // Upload de anexos
     const anexosPaths: string[] = []
     if (arquivos.length > 0) {
-      const serviceClient = createServiceClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      )
       for (const arquivo of arquivos) {
         const buffer = Buffer.from(await arquivo.arrayBuffer())
         const path = `iniciativas/${protocolo}/anexos/${arquivo.name}`
