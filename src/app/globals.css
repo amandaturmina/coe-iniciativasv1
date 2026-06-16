@@ -3,34 +3,33 @@
 @tailwind utilities;
 
 :root {
-  --color-atrio:        #2B3147;
-  --color-atrio-dark:   #1E2438;
-  --color-atrio-light:  #ECEEF4;
-  --color-atrio-accent: #BE3728;
+  --color-atrio:       #2563EB;
+  --color-atrio-dark:  #1D4ED8;
+  --color-atrio-light: #EFF6FF;
 }
 
 @layer base {
   * { box-sizing: border-box; }
-  body { @apply text-gray-800; }
+  body { @apply text-gray-900 bg-gray-100; }
 }
 
 @layer components {
   .btn-primary {
     @apply bg-atrio text-white px-4 py-2 rounded-lg font-medium
            hover:bg-atrio-dark transition-colors
-           disabled:opacity-50 disabled:cursor-not-allowed;
+           disabled:opacity-40 disabled:cursor-not-allowed;
   }
   .btn-secondary {
-    @apply bg-white text-atrio border border-atrio px-4 py-2 rounded-lg font-medium
-           hover:bg-atrio-light transition-colors;
+    @apply bg-white text-gray-700 border border-gray-200 px-4 py-2 rounded-lg font-medium
+           hover:bg-gray-50 hover:border-gray-300 transition-colors;
   }
   .input-base {
-    @apply w-full border border-gray-300 rounded-lg px-3 py-2 text-sm
-           focus:outline-none focus:ring-2 focus:ring-atrio focus:border-transparent
+    @apply w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white
+           focus:outline-none focus:ring-2 focus:ring-atrio/30 focus:border-atrio
            transition-shadow;
   }
   .label-base {
-    @apply block text-sm font-medium text-gray-700 mb-1;
+    @apply block text-sm font-medium text-gray-600 mb-1;
   }
   .card {
     @apply bg-white rounded-xl border border-gray-200 shadow-sm;
