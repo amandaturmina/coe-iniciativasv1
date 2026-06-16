@@ -63,7 +63,10 @@ export async function POST(req: NextRequest) {
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('Erro ao criar iniciativa:', error)
+      throw error
+    }
 
     // Upload de anexos
     const anexosPaths: string[] = []
