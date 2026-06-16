@@ -18,13 +18,17 @@ export default async function IniciativaPage({ params }: { params: { id: string 
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('perfil')
+    .select('perfil, nome')
     .eq('id', user.id)
     .single()
 
   return (
     <LayoutProtegido>
-      <DetalheIniciativa iniciativa={iniciativa} perfil={profile?.perfil ?? 'colaborador'} />
+      <DetalheIniciativa
+        iniciativa={iniciativa}
+        perfil={profile?.perfil ?? 'colaborador'}
+        autorNome={profile?.nome ?? 'Usuário'}
+      />
     </LayoutProtegido>
   )
 }
