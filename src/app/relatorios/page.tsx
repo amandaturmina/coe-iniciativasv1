@@ -19,8 +19,8 @@ export default async function RelatoriosPage() {
   return (
     <LayoutProtegido>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Relatórios</h1>
-        <p className="text-gray-500 mt-1">Dashboard com métricas e análises do portfólio de iniciativas.</p>
+        <h1 className="text-2xl font-bold text-gray-900">Portfólio de Projetos</h1>
+        <p className="text-gray-500 mt-1">System COE Átrio Hotel Management — visão executiva do portfólio.</p>
       </div>
       <DashboardRelatorios />
     </LayoutProtegido>

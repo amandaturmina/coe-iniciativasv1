@@ -64,7 +64,7 @@ export default async function DashboardPage() {
             Olá, {profile?.nome?.split(' ')[0]}! 👋
           </h1>
           <p className="text-gray-500 mt-1">
-            Bem-vindo ao sistema de gestão de iniciativas do COE Atrio.
+            Bem-vindo ao System COE Átrio Hotel Management.
           </p>
         </div>
 

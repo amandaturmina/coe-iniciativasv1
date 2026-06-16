@@ -5,8 +5,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 export const metadata: Metadata = {
-  title: 'COE Atrio — Gestão de Iniciativas',
-  description: 'Sistema de gestão do ciclo completo de iniciativas do COE Atrio Hotéis',
+  title: 'System COE Átrio Hotel Management',
+  description: 'Sistema de gestão do ciclo completo de iniciativas — System COE Átrio Hotel Management',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
