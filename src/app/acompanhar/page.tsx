@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -35,7 +35,7 @@ interface Iniciativa {
   created_at: string
 }
 
-export default function AcompanharPage() {
+function AcompanharContent() {
   const searchParams = useSearchParams()
   const [protocolo, setProtocolo] = useState(searchParams.get('protocolo') ?? '')
   const [buscando, setBuscando] = useState(false)
@@ -76,6 +76,81 @@ export default function AcompanharPage() {
   }) : null
 
   return (
+    <main className="flex-1 flex items-start justify-center px-4 py-12">
+      <div className="w-full max-w-lg">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">Acompanhar Iniciativa</h1>
+          <p className="text-gray-500 mt-2">
+            Informe o número do protocolo recebido na submissão.
+          </p>
+        </div>
+
+        <form onSubmit={buscar} className="flex gap-2 mb-8">
+          <input
+            type="text"
+            value={protocolo}
+            onChange={e => setProtocolo(e.target.value)}
+            className="input-base flex-1"
+            placeholder="Ex: COE-2026-001"
+            autoFocus
+          />
+          <button
+            type="submit"
+            disabled={buscando || !protocolo.trim()}
+            className="btn-primary px-6"
+          >
+            {buscando ? 'Buscando...' : 'Buscar'}
+          </button>
+        </form>
+
+        {naoEncontrado && (
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center">
+            <p className="text-gray-600 font-medium">Protocolo não encontrado.</p>
+            <p className="text-gray-400 text-sm mt-1">Verifique o número e tente novamente.</p>
+          </div>
+        )}
+
+        {iniciativa && statusInfo && (
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-gray-100">
+              <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Protocolo</p>
+              <p className="text-xl font-bold text-atrio">{iniciativa.protocolo}</p>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Iniciativa</p>
+                <p className="font-medium text-gray-900">{iniciativa.titulo}</p>
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wide mb-2">Status</p>
+                <span className={`inline-block border rounded-full px-4 py-1.5 text-sm font-semibold ${statusInfo.cor}`}>
+                  {statusInfo.label}
+                </span>
+                {statusInfo.descricao && (
+                  <p className="text-gray-500 text-sm mt-2">{statusInfo.descricao}</p>
+                )}
+              </div>
+
+              <div>
+                <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Submetida em</p>
+                <p className="text-gray-600 text-sm">
+                  {new Date(iniciativa.created_at).toLocaleDateString('pt-BR', {
+                    day: '2-digit', month: 'long', year: 'numeric',
+                  })}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </main>
+  )
+}
+
+export default function AcompanharPage() {
+  return (
     <div className="min-h-screen flex flex-col">
       <header className="bg-atrio text-white shadow-md">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -94,76 +169,9 @@ export default function AcompanharPage() {
         </div>
       </header>
 
-      <main className="flex-1 flex items-start justify-center px-4 py-12">
-        <div className="w-full max-w-lg">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-900">Acompanhar Iniciativa</h1>
-            <p className="text-gray-500 mt-2">
-              Informe o número do protocolo recebido na submissão.
-            </p>
-          </div>
-
-          <form onSubmit={buscar} className="flex gap-2 mb-8">
-            <input
-              type="text"
-              value={protocolo}
-              onChange={e => setProtocolo(e.target.value)}
-              className="input-base flex-1"
-              placeholder="Ex: COE-2026-001"
-              autoFocus
-            />
-            <button
-              type="submit"
-              disabled={buscando || !protocolo.trim()}
-              className="btn-primary px-6"
-            >
-              {buscando ? 'Buscando...' : 'Buscar'}
-            </button>
-          </form>
-
-          {naoEncontrado && (
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center">
-              <p className="text-gray-600 font-medium">Protocolo não encontrado.</p>
-              <p className="text-gray-400 text-sm mt-1">Verifique o número e tente novamente.</p>
-            </div>
-          )}
-
-          {iniciativa && statusInfo && (
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-gray-100">
-                <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Protocolo</p>
-                <p className="text-xl font-bold text-atrio">{iniciativa.protocolo}</p>
-              </div>
-
-              <div className="p-6 space-y-4">
-                <div>
-                  <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Iniciativa</p>
-                  <p className="font-medium text-gray-900">{iniciativa.titulo}</p>
-                </div>
-
-                <div>
-                  <p className="text-xs text-gray-400 uppercase tracking-wide mb-2">Status</p>
-                  <span className={`inline-block border rounded-full px-4 py-1.5 text-sm font-semibold ${statusInfo.cor}`}>
-                    {statusInfo.label}
-                  </span>
-                  {statusInfo.descricao && (
-                    <p className="text-gray-500 text-sm mt-2">{statusInfo.descricao}</p>
-                  )}
-                </div>
-
-                <div>
-                  <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Submetida em</p>
-                  <p className="text-gray-600 text-sm">
-                    {new Date(iniciativa.created_at).toLocaleDateString('pt-BR', {
-                      day: '2-digit', month: 'long', year: 'numeric',
-                    })}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </main>
+      <Suspense fallback={<div className="flex-1 flex items-center justify-center"><div className="w-8 h-8 border-4 border-atrio border-t-transparent rounded-full animate-spin" /></div>}>
+        <AcompanharContent />
+      </Suspense>
     </div>
   )
 }
