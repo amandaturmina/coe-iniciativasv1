@@ -295,8 +295,10 @@ export default function DetalheIniciativa({ iniciativa: ini, perfil, autorNome }
   async function gerarTAP() {
     setGerandoPDF(true)
     try {
-      const { default: jsPDF } = await import('jspdf')
-      await import('jspdf-autotable')
+      const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+        import('jspdf'),
+        import('jspdf-autotable'),
+      ])
 
       const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
       const pageW   = doc.internal.pageSize.getWidth()
@@ -419,7 +421,7 @@ export default function DetalheIniciativa({ iniciativa: ini, perfil, autorNome }
       // 6 — Riscos (tabela)
       sectionTitle(6, 'RISCOS')
       if ((ini.riscos ?? []).length > 0) {
-        ;(doc as unknown as { autoTable: (opts: unknown) => void }).autoTable({
+        autoTable(doc, {
           startY: y,
           margin: { left: margin, right: margin },
           head: [['Risco', 'Probabilidade', 'Impacto', 'Nível']],
@@ -458,7 +460,7 @@ export default function DetalheIniciativa({ iniciativa: ini, perfil, autorNome }
           return [d.label, nota > 0 ? nota.toString() : '—', `${d.peso}%`, nota > 0 ? (nota * d.peso).toFixed(0) : '—']
         })
         bodyRows.push(['TOTAL', `${(ini.score ?? 0).toFixed(2)}`, '100%', `${pct}% — ${veredito}`])
-        ;(doc as unknown as { autoTable: (opts: unknown) => void }).autoTable({
+        autoTable(doc, {
           startY: y,
           margin: { left: margin, right: margin },
           head: [['Dimensão', 'Nota (1-3)', 'Peso', 'Score parcial']],
@@ -478,7 +480,7 @@ export default function DetalheIniciativa({ iniciativa: ini, perfil, autorNome }
       }
 
       // ── RODAPÉ ──────────────────────────────────────────────────────────
-      const total = doc.internal.getNumberOfPages()
+      const total = doc.getNumberOfPages()
       for (let i = 1; i <= total; i++) {
         doc.setPage(i)
         doc.setFontSize(7.5)
