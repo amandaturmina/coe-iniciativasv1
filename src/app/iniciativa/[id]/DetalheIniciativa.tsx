@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Badge, { badgeStatus } from '@/components/Badge'
 import Scorecard from '@/components/Scorecard'
 import PainelDecisao from '@/components/PainelDecisao'
+import { createClient } from '@/lib/supabase/client'
 
 interface Iniciativa {
   id: string
@@ -44,10 +45,44 @@ interface Props {
   perfil: string
 }
 
+function formatBRL(v: number) {
+  return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}
+
+function AnexoLink({ path }: { path: string }) {
+  const supabase = createClient()
+  const { data } = supabase.storage.from('iniciativas').getPublicUrl(path)
+  const nome = path.split('/').pop() ?? path
+
+  return (
+    <li className="flex items-center gap-2 text-sm">
+      <svg className="w-4 h-4 text-atrio flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+          d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+      </svg>
+      <a
+        href={data.publicUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-atrio hover:underline truncate max-w-xs"
+        title={nome}
+      >
+        {nome}
+      </a>
+    </li>
+  )
+}
+
 export default function DetalheIniciativa({ iniciativa: ini, perfil }: Props) {
   const [aba, setAba] = useState(0)
   const [scorecard, setScorecard] = useState<Record<string, number>>(ini.scorecard ?? {})
   const [recarregar, setRecarregar] = useState(0)
+
+  // Estado editável de custos (somente gestor)
+  const [custoEstimado, setCustoEstimado] = useState(ini.custo_estimado?.toString() ?? '')
+  const [detalhamentoCustos, setDetalhamentoCustos] = useState(ini.detalhamento_custos ?? '')
+  const [salvandoCustos, setSalvandoCustos] = useState(false)
+  const [toastCustos, setToastCustos] = useState('')
 
   async function salvarScorecard(sc: Record<string, number>, scoreTotal: number) {
     setScorecard(sc)
@@ -56,6 +91,21 @@ export default function DetalheIniciativa({ iniciativa: ini, perfil }: Props) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ scorecard: sc, score: scoreTotal }),
     })
+  }
+
+  async function salvarCustos() {
+    setSalvandoCustos(true)
+    const res = await fetch(`/api/iniciativas/${ini.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        custo_estimado: custoEstimado ? parseFloat(custoEstimado) : null,
+        detalhamento_custos: detalhamentoCustos || null,
+      }),
+    })
+    setSalvandoCustos(false)
+    setToastCustos(res.ok ? 'Custos salvos!' : 'Erro ao salvar')
+    setTimeout(() => setToastCustos(''), 3000)
   }
 
   const bs = badgeStatus(ini.status)
@@ -81,7 +131,7 @@ export default function DetalheIniciativa({ iniciativa: ini, perfil }: Props) {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Coluna principal (60%) */}
+        {/* Coluna principal */}
         <div className="flex-1 min-w-0">
           {/* Abas */}
           <div className="flex overflow-x-auto gap-1 mb-4 pb-1">
@@ -139,22 +189,63 @@ export default function DetalheIniciativa({ iniciativa: ini, perfil }: Props) {
             )}
 
             {aba === 2 && (
-              <div className="space-y-4">
-                <div>
-                  <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">Custo estimado total</dt>
-                  <dd className="text-gray-900 mt-0.5">
-                    {ini.custo_estimado
-                      ? ini.custo_estimado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
-                      : 'Não informado'}
-                  </dd>
-                </div>
-                {ini.detalhamento_custos && (
+              perfil === 'gestor' ? (
+                <div className="space-y-4">
                   <div>
-                    <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">Detalhamento</dt>
-                    <dd className="text-gray-900 mt-0.5 whitespace-pre-line">{ini.detalhamento_custos}</dd>
+                    <label className="label-base">Custo estimado total (R$)</label>
+                    <div className="relative mt-1">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">R$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        className="input-base pl-8"
+                        placeholder="0,00"
+                        value={custoEstimado}
+                        onChange={e => setCustoEstimado(e.target.value)}
+                      />
+                    </div>
                   </div>
-                )}
-              </div>
+                  <div>
+                    <label className="label-base">Detalhamento dos custos</label>
+                    <textarea
+                      rows={5}
+                      className="input-base resize-none mt-1"
+                      placeholder="Ex: R$ 15k consultoria, R$ 5k licença de software..."
+                      value={detalhamentoCustos}
+                      onChange={e => setDetalhamentoCustos(e.target.value)}
+                    />
+                  </div>
+                  {toastCustos && (
+                    <p className={`text-sm ${toastCustos.includes('salvo') ? 'text-green-600' : 'text-red-600'}`}>
+                      {toastCustos}
+                    </p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={salvarCustos}
+                    disabled={salvandoCustos}
+                    className="btn-primary px-6"
+                  >
+                    {salvandoCustos ? 'Salvando...' : 'Salvar custos'}
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">Custo estimado total</dt>
+                    <dd className="text-gray-900 mt-0.5">
+                      {ini.custo_estimado ? formatBRL(ini.custo_estimado) : 'Não informado'}
+                    </dd>
+                  </div>
+                  {ini.detalhamento_custos && (
+                    <div>
+                      <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">Detalhamento</dt>
+                      <dd className="text-gray-900 mt-0.5 whitespace-pre-line">{ini.detalhamento_custos}</dd>
+                    </div>
+                  )}
+                </div>
+              )
             )}
 
             {aba === 3 && (
@@ -247,12 +338,7 @@ export default function DetalheIniciativa({ iniciativa: ini, perfil }: Props) {
                 ) : (
                   <ul className="space-y-2">
                     {ini.anexos.map((path, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm text-atrio">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                        </svg>
-                        {path.split('/').pop()}
-                      </li>
+                      <AnexoLink key={i} path={path} />
                     ))}
                   </ul>
                 )}
@@ -261,7 +347,7 @@ export default function DetalheIniciativa({ iniciativa: ini, perfil }: Props) {
           </div>
         </div>
 
-        {/* Coluna lateral (40%) — apenas para gestor */}
+        {/* Coluna lateral — apenas gestor */}
         {perfil === 'gestor' && (
           <div className="w-full lg:w-96 flex-shrink-0 space-y-4 lg:sticky lg:top-4 self-start">
             <div className="card p-5">

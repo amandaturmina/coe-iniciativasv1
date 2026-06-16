@@ -98,7 +98,10 @@ function Coluna({ col, iniciativas }: { col: typeof COLUNAS[0]; iniciativas: Ini
   const { isOver, setNodeRef } = useDroppable({ id: col.id })
 
   return (
-    <div className={`flex-1 min-w-60 rounded-xl border-t-4 ${col.cor} ${isOver ? 'ring-2 ring-atrio ring-offset-2' : ''}`}>
+    <div
+      ref={setNodeRef}
+      className={`flex-1 min-w-60 rounded-xl border-t-4 ${col.cor} ${isOver ? 'ring-2 ring-atrio ring-offset-2' : ''}`}
+    >
       <div className="p-3 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-gray-800 text-sm">{col.label}</h3>
@@ -107,7 +110,7 @@ function Coluna({ col, iniciativas }: { col: typeof COLUNAS[0]; iniciativas: Ini
           </span>
         </div>
       </div>
-      <div ref={setNodeRef} className="p-3 space-y-2 min-h-64">
+      <div className="p-3 space-y-2 min-h-64">
         {iniciativas.map(ini => (
           <Card key={ini.id} ini={ini} isConcluida={col.id === 'Concluída'} />
         ))}

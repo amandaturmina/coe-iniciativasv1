@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 
 interface Props {
   id: string
@@ -8,14 +8,65 @@ interface Props {
   onDecisaoSalva: () => void
 }
 
+function NumInput({ label, value, onChange, prefix = '' }: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  prefix?: string
+}) {
+  return (
+    <div>
+      <label className="text-xs text-gray-600 font-medium">{label}</label>
+      <div className="relative mt-0.5">
+        {prefix && (
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs">{prefix}</span>
+        )}
+        <input
+          type="number"
+          min="0"
+          step="any"
+          className={`w-full border border-gray-200 rounded-lg py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-atrio ${prefix ? 'pl-7 pr-3' : 'px-3'}`}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+        />
+      </div>
+    </div>
+  )
+}
+
 export default function PainelDecisao({ id, decisaoAtual, onDecisaoSalva }: Props) {
   const [decisao, setDecisao] = useState(decisaoAtual ?? '')
   const [justificativa, setJustificativa] = useState('')
   const [responsavelExecucao, setResponsavelExecucao] = useState('')
   const [previsaoInicio, setPrevisaoInicio] = useState('')
-  const [roiEstimado, setRoiEstimado] = useState('')
   const [salvando, setSalvando] = useState(false)
   const [toast, setToast] = useState('')
+
+  // Campos da calculadora de ROI
+  const [horasMes, setHorasMes] = useState('')
+  const [custoHora, setCustoHora] = useState('')
+  const [economiaMensal, setEconomiaMensal] = useState('')
+  const [receitaAdicional, setReceitaAdicional] = useState('')
+  const [custoProjeto, setCustoProjeto] = useState('')
+
+  const roi = useMemo(() => {
+    const h = parseFloat(horasMes) || 0
+    const ch = parseFloat(custoHora) || 0
+    const em = parseFloat(economiaMensal) || 0
+    const ra = parseFloat(receitaAdicional) || 0
+    const cp = parseFloat(custoProjeto) || 0
+
+    const economiasAnualFTE = h * ch * 12
+    const beneficioTotal = economiasAnualFTE + em * 12 + ra
+    const roiPct = cp > 0 ? ((beneficioTotal - cp) / cp) * 100 : 0
+    const paybackMeses = beneficioTotal > 0 ? cp / (beneficioTotal / 12) : 0
+
+    return { economiasAnualFTE, beneficioTotal, roiPct, paybackMeses, temDados: cp > 0 || beneficioTotal > 0 }
+  }, [horasMes, custoHora, economiaMensal, receitaAdicional, custoProjeto])
+
+  function fmtBRL(v: number) {
+    return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
+  }
 
   async function salvar() {
     if (!decisao) { setToast('Selecione uma decisão'); return }
@@ -31,7 +82,7 @@ export default function PainelDecisao({ id, decisaoAtual, onDecisaoSalva }: Prop
         justificativa,
         responsavel_execucao: responsavelExecucao,
         previsao_inicio: previsaoInicio || null,
-        roi_estimado: roiEstimado ? parseFloat(roiEstimado) : null,
+        roi_estimado: roi.temDados ? parseFloat(roi.roiPct.toFixed(2)) : null,
       }),
     })
 
@@ -74,7 +125,9 @@ export default function PainelDecisao({ id, decisaoAtual, onDecisaoSalva }: Prop
 
       {/* Justificativa */}
       <div>
-        <label className="label-base">Justificativa * <span className="text-gray-400 font-normal">(mín. 20 caracteres)</span></label>
+        <label className="label-base">
+          Justificativa * <span className="text-gray-400 font-normal">(mín. 20 caracteres)</span>
+        </label>
         <textarea
           rows={3}
           className="input-base resize-none"
@@ -85,7 +138,7 @@ export default function PainelDecisao({ id, decisaoAtual, onDecisaoSalva }: Prop
         <p className="text-xs text-gray-400 text-right mt-0.5">{justificativa.length} caracteres</p>
       </div>
 
-      {/* Campos extras para aprovação */}
+      {/* Campos extras para aprovação + Calculadora ROI */}
       {decisao === 'Aprovada' && (
         <div className="space-y-3 p-4 bg-green-50 rounded-lg border border-green-200">
           <div>
@@ -107,19 +160,42 @@ export default function PainelDecisao({ id, decisaoAtual, onDecisaoSalva }: Prop
               onChange={e => setPrevisaoInicio(e.target.value)}
             />
           </div>
-          <div>
-            <label className="label-base">ROI estimado (R$)</label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">R$</span>
-              <input
-                type="number"
-                step="0.01"
-                className="input-base pl-8"
-                placeholder="0,00"
-                value={roiEstimado}
-                onChange={e => setRoiEstimado(e.target.value)}
-              />
+
+          {/* Calculadora ROI */}
+          <div className="pt-2 border-t border-green-300">
+            <p className="text-xs font-semibold text-gray-700 mb-3 uppercase tracking-wide">Calculadora de ROI</p>
+            <div className="space-y-2">
+              <NumInput label="Horas economizadas / mês" value={horasMes} onChange={setHorasMes} />
+              <NumInput label="Custo-hora médio da equipe" value={custoHora} onChange={setCustoHora} prefix="R$" />
+              <NumInput label="Economia mensal gerada" value={economiaMensal} onChange={setEconomiaMensal} prefix="R$" />
+              <NumInput label="Receita adicional esperada" value={receitaAdicional} onChange={setReceitaAdicional} prefix="R$" />
+              <NumInput label="Custo total do projeto" value={custoProjeto} onChange={setCustoProjeto} prefix="R$" />
             </div>
+
+            {roi.temDados && (
+              <div className="mt-3 p-3 bg-white rounded-lg border border-green-200 space-y-1.5">
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-500">Economia FTE anual</span>
+                  <span className="font-medium text-gray-800">{fmtBRL(roi.economiasAnualFTE)}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-500">Benefício total anual</span>
+                  <span className="font-medium text-gray-800">{fmtBRL(roi.beneficioTotal)}</span>
+                </div>
+                <div className="flex justify-between text-xs border-t border-gray-100 pt-1.5 mt-1.5">
+                  <span className="text-gray-700 font-semibold">ROI</span>
+                  <span className={`font-bold text-sm ${roi.roiPct >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                    {roi.roiPct.toFixed(1)}%
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-gray-500">Payback estimado</span>
+                  <span className="font-medium text-gray-800">
+                    {roi.paybackMeses > 0 ? `${roi.paybackMeses.toFixed(1)} meses` : '—'}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

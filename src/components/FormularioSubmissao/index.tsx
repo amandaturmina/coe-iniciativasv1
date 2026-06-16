@@ -170,7 +170,7 @@ export default function FormularioSubmissao() {
 
         {secaoAtual === 0 && <Secao1Identificacao {...secaoProps} />}
         {secaoAtual === 1 && <Secao2ProblemaValor dados={dados} onChange={atualizarDado} erros={erros} />}
-        {secaoAtual === 2 && <Secao3Custos dados={dados} onChange={atualizarDado} erros={erros} />}
+        {secaoAtual === 2 && <Secao3Custos />}
         {secaoAtual === 3 && <Secao4EscopoEntregas {...secaoProps} />}
         {secaoAtual === 4 && <Secao5Cronograma {...secaoProps} />}
         {secaoAtual === 5 && <Secao6Recursos dados={dados} onChange={atualizarDado} erros={erros} />}
