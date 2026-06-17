@@ -14,20 +14,22 @@ export default async function OnboardingPage() {
     .eq('id', user.id)
     .single()
 
-  if (!['gestor', 'lideranca'].includes(profile?.perfil ?? '')) {
+  if (!['gestor', 'lideranca'].includes(profile?.perfil ?? ''))
     redirect('/dashboard')
-  }
 
-  const { data: iniciativas } = await supabase
+  const { data } = await supabase
     .from('iniciativas')
-    .select('id, protocolo, titulo, area, responsavel_nome, sponsor, status, kanban_status, created_at, updated_at')
+    .select(`
+      id, protocolo, titulo, area, tipo_iniciativa, responsavel_nome,
+      sponsor, urgencia, score, updated_at, created_at,
+      onboardings(id, status, percentual_prontidao, responsavel_coe, created_at)
+    `)
     .eq('status', 'Aprovada')
-    .eq('kanban_status', 'Em planejamento')
     .order('updated_at', { ascending: false })
 
   return (
     <LayoutProtegido>
-      <OnboardingClient iniciativas={iniciativas ?? []} />
+      <OnboardingClient rows={data ?? []} />
     </LayoutProtegido>
   )
 }
