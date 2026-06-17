@@ -3,35 +3,45 @@
 @tailwind utilities;
 
 :root {
-  --color-atrio:       #2563EB;
-  --color-atrio-dark:  #1D4ED8;
-  --color-atrio-light: #EFF6FF;
+  --color-atrio:       #451a1a;
+  --color-atrio-hover: #5c2222;
+  --color-atrio-light: #f5eded;
+  --color-text:        #1a1917;
+  --color-text2:       #6b6966;
+  --color-bg:          #f8f7f6;
+  --color-border:      #ededeb;
+  --status-green:      #2d7d46;
+  --status-green-bg:   #eaf5ec;
+  --status-amber:      #b07d1a;
+  --status-amber-bg:   #fef9ec;
+  --status-red:        #c0392b;
+  --status-red-bg:     #fcebeb;
 }
 
 @layer base {
   * { box-sizing: border-box; }
-  body { @apply text-gray-900 bg-gray-100; }
+  body { background: #f8f7f6; color: #1a1917; }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-atrio text-white px-4 py-2 rounded-lg font-medium
-           hover:bg-atrio-dark transition-colors
+    @apply bg-[#451a1a] text-white px-4 py-2 rounded-lg font-medium
+           hover:bg-[#5c2222] transition-colors
            disabled:opacity-40 disabled:cursor-not-allowed;
   }
   .btn-secondary {
-    @apply bg-white text-gray-700 border border-gray-200 px-4 py-2 rounded-lg font-medium
-           hover:bg-gray-50 hover:border-gray-300 transition-colors;
+    @apply bg-white text-[#1a1917] border border-[#ededeb] px-4 py-2 rounded-lg font-medium
+           hover:bg-[#f5eded] hover:border-[#451a1a]/30 transition-colors;
   }
   .input-base {
-    @apply w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white
-           focus:outline-none focus:ring-2 focus:ring-atrio/30 focus:border-atrio
-           transition-shadow;
+    @apply w-full border border-[#ededeb] rounded-lg px-3 py-2 text-sm bg-white
+           focus:outline-none focus:ring-2 focus:ring-[#451a1a]/20 focus:border-[#451a1a]/50
+           transition-shadow text-[#1a1917] placeholder:text-[#6b6966];
   }
   .label-base {
-    @apply block text-sm font-medium text-gray-600 mb-1;
+    @apply block text-sm font-medium text-[#6b6966] mb-1;
   }
   .card {
-    @apply bg-white rounded-xl border border-gray-200 shadow-sm;
+    @apply bg-white rounded-xl border border-[#ededeb] shadow-sm;
   }
 }

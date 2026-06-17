@@ -10,10 +10,10 @@ const config: Config = {
     extend: {
       colors: {
         atrio: {
-          DEFAULT: '#2563EB',
-          dark:    '#1D4ED8',
-          light:   '#EFF6FF',
-          medium:  '#3B82F6',
+          DEFAULT: '#451a1a',
+          hover:   '#5c2222',
+          light:   '#f5eded',
+          dark:    '#2d1010',
         },
       },
       fontFamily: {

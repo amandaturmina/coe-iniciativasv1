@@ -27,11 +27,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     .eq('id', user.id)
     .single()
 
-  if (profile?.perfil !== 'gestor') {
+  // Decisões formais (aprovação/recusa) são exclusivas do gestor
+  // Mas atualizações operacionais (status kanban, gestão, atividades, updates) permitem liderança também
+  const body = await req.json()
+  const isDecisaoFormal = !!body.decisao
+  if (isDecisaoFormal && profile?.perfil !== 'gestor') {
+    return NextResponse.json({ erro: 'Sem permissão para decisões formais' }, { status: 403 })
+  }
+  if (!['gestor', 'lideranca'].includes(profile?.perfil ?? '')) {
     return NextResponse.json({ erro: 'Sem permissão' }, { status: 403 })
   }
-
-  const body = await req.json()
 
   // Se é uma decisão, adicionar campos extras
   if (body.decisao) {
