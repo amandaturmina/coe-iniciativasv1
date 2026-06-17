@@ -50,10 +50,10 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Projetos',
     items: [
       { href: '/submeter',            label: 'Nova Iniciativa',        Icon: Plus,            perfis: ['colaborador', 'gestor', 'lideranca'] },
-      { href: '/dashboard',           label: 'Dashboard',              Icon: LayoutDashboard, perfis: ['colaborador', 'gestor', 'lideranca'] },
-      { href: '/onboarding',          label: 'Onboarding de Projetos', Icon: ClipboardList,   perfis: ['gestor', 'lideranca'] },
+      { href: '/dashboard',           label: 'Dashboard',              Icon: LayoutDashboard, perfis: ['colaborador', 'gestor', 'lideranca'], dev: true },
+      { href: '/onboarding',          label: 'Onboarding de Projetos', Icon: ClipboardList,   perfis: ['gestor', 'lideranca'], dev: true },
       { href: '/fila',                label: 'Fila de Análise',        Icon: ListChecks,      perfis: ['gestor'], badge: true },
-      { href: '/acompanhamento',      label: 'Acompanhamento',         Icon: Kanban,          perfis: ['gestor', 'lideranca'] },
+      { href: '/acompanhamento',      label: 'Acompanhamento',         Icon: Kanban,          perfis: ['gestor', 'lideranca'], dev: true },
       { href: '/corporativos',        label: 'Projetos Corporativos',  Icon: Building2,       perfis: ['gestor', 'lideranca'], dev: true },
       { href: '/setoriais',           label: 'Projetos Setoriais',     Icon: Layers,          perfis: ['gestor', 'lideranca'], dev: true },
       { href: '/implantacoes',        label: 'Implantações de Hotéis', Icon: Hotel,           perfis: ['gestor', 'lideranca'], dev: true },
