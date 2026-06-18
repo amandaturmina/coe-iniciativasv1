@@ -74,6 +74,7 @@ interface Iniciativa {
   roi_calculado: number | null
   score: number
   status: string
+  kanban_status: string | null
   data_fim_prevista?: string
   data_fim_estimada?: string
   data_inicio_estimada?: string
@@ -120,7 +121,7 @@ function Card({
   const temImpedimento = impedimentos.length > 0
 
   const prazoRef = ini.data_fim_estimada ?? ini.data_fim_prevista
-  const prazoAtrasado = prazoRef && ini.status !== 'Concluída'
+  const prazoAtrasado = prazoRef && ini.kanban_status !== 'Concluída'
     ? new Date(prazoRef) < new Date()
     : false
 
@@ -386,11 +387,9 @@ export default function KanbanBoard() {
         setNomeUsuario(profile?.nome ?? 'Usuário')
       }
 
-      const res = await fetch('/api/iniciativas?status=Em planejamento,Em andamento,Em validação,Concluída,Pausada')
+      const res = await fetch('/api/iniciativas?status=Aprovada')
       const json = await res.json()
-      setIniciativas((json.dados ?? []).filter((i: Iniciativa) =>
-        ['Em planejamento', 'Em andamento', 'Em validação', 'Concluída', 'Pausada'].includes(i.status)
-      ))
+      setIniciativas(json.dados ?? [])
       setCarregando(false)
     }
     carregar()
@@ -404,15 +403,16 @@ export default function KanbanBoard() {
     setAtivo(null)
     const { active, over } = e
     if (!over) return
-    const novoStatus = over.id as string
+    const novoKanbanStatus = over.id as string
     const ini = iniciativas.find(i => i.id === active.id)
-    if (!ini || ini.status === novoStatus) return
+    const colAtual = ini?.kanban_status ?? 'Em planejamento'
+    if (!ini || colAtual === novoKanbanStatus) return
 
-    setIniciativas(prev => prev.map(i => i.id === active.id ? { ...i, status: novoStatus } : i))
+    setIniciativas(prev => prev.map(i => i.id === active.id ? { ...i, kanban_status: novoKanbanStatus } : i))
     await fetch(`/api/iniciativas/${active.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: novoStatus }),
+      body: JSON.stringify({ kanban_status: novoKanbanStatus }),
     })
   }
 
@@ -441,7 +441,7 @@ export default function KanbanBoard() {
             <Coluna
               key={col.id}
               col={col}
-              iniciativas={iniciativas.filter(i => i.status === col.id)}
+              iniciativas={iniciativas.filter(i => (i.kanban_status ?? 'Em planejamento') === col.id)}
               nomeUsuario={nomeUsuario}
               onOpenDrawer={setDrawerIni}
               onAdd={nova => setIniciativas(prev => [...prev, nova])}
