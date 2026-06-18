@@ -177,7 +177,7 @@ export default function LayoutProtegido({ children }: { children: React.ReactNod
               <div className="flex items-center gap-2.5">
                 <AtriaMark size={26} color="#1a1917" />
                 <div className="leading-none">
-                  <p className="font-bold text-[12px] text-red-700 tracking-wide">COE SYSTEM ATRIO</p>
+                  <p className="font-bold text-[12px] text-[#1a1917] tracking-wide">COE SYSTEM ATRIO</p>
                   <p className="text-[9px] text-[#6b6966] tracking-wide">Hotel Management</p>
                 </div>
               </div>
