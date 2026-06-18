@@ -1,10 +1,15 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { Edit2 } from 'lucide-react'
 
 interface Props {
   id: string
   decisaoAtual?: string
+  justificativaAtual?: string
+  responsavelExecucaoAtual?: string
+  previsaoInicioAtual?: string
+  roiEstimadoAtual?: number
   onDecisaoSalva: () => void
 }
 
@@ -34,11 +39,39 @@ function NumInput({ label, value, onChange, prefix = '' }: {
   )
 }
 
-export default function PainelDecisao({ id, decisaoAtual, onDecisaoSalva }: Props) {
+const BADGE: Record<string, { bg: string; cor: string; icone: string }> = {
+  Aprovada:      { bg: '#eaf5ec', cor: '#2d7d46', icone: '✅' },
+  Recusada:      { bg: '#fcebeb', cor: '#c0392b', icone: '❌' },
+  'Aguardar ciclo': { bg: '#fef9ec', cor: '#b07d1a', icone: '⏳' },
+}
+
+function Campo({ label, valor }: { label: string; valor: string }) {
+  return (
+    <div>
+      <p style={{ fontSize: 11, color: '#6b6966', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>
+        {label}
+      </p>
+      <p style={{ fontSize: 13, color: '#1a1917', fontWeight: 500 }}>{valor}</p>
+    </div>
+  )
+}
+
+export default function PainelDecisao({
+  id,
+  decisaoAtual,
+  justificativaAtual,
+  responsavelExecucaoAtual,
+  previsaoInicioAtual,
+  roiEstimadoAtual,
+  onDecisaoSalva,
+}: Props) {
+  const temDecisaoSalva = !!(decisaoAtual && decisaoAtual !== '')
+  const [modoEdicao, setModoEdicao] = useState(!temDecisaoSalva)
+
   const [decisao, setDecisao] = useState(decisaoAtual ?? '')
-  const [justificativa, setJustificativa] = useState('')
-  const [responsavelExecucao, setResponsavelExecucao] = useState('')
-  const [previsaoInicio, setPrevisaoInicio] = useState('')
+  const [justificativa, setJustificativa] = useState(justificativaAtual ?? '')
+  const [responsavelExecucao, setResponsavelExecucao] = useState(responsavelExecucaoAtual ?? '')
+  const [previsaoInicio, setPrevisaoInicio] = useState(previsaoInicioAtual ?? '')
   const [salvando, setSalvando] = useState(false)
   const [toast, setToast] = useState('')
 
@@ -68,6 +101,12 @@ export default function PainelDecisao({ id, decisaoAtual, onDecisaoSalva }: Prop
     return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 })
   }
 
+  function fmtData(iso?: string) {
+    if (!iso) return '—'
+    const [y, m, d] = iso.split('-')
+    return `${d}/${m}/${y}`
+  }
+
   async function salvar() {
     if (!decisao) { setToast('Selecione uma decisão'); return }
     if (justificativa.length < 20) { setToast('Justificativa muito curta (mín. 20 caracteres)'); return }
@@ -89,6 +128,7 @@ export default function PainelDecisao({ id, decisaoAtual, onDecisaoSalva }: Prop
     setSalvando(false)
     if (res.ok) {
       setToast('Decisão salva com sucesso!')
+      setModoEdicao(false)
       onDecisaoSalva()
     } else {
       setToast('Erro ao salvar decisão')
@@ -96,9 +136,97 @@ export default function PainelDecisao({ id, decisaoAtual, onDecisaoSalva }: Prop
     setTimeout(() => setToast(''), 3000)
   }
 
+  // ── Modo visualização ─────────────────────────────────────────────────────
+  if (!modoEdicao && temDecisaoSalva) {
+    const badge = BADGE[decisaoAtual!] ?? { bg: '#f0f0f0', cor: '#555', icone: '•' }
+    return (
+      <div style={{ background: '#f8f7f6', border: '1px solid #ededeb', borderRadius: 10, padding: '20px' }}>
+        {/* Cabeçalho */}
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-gray-900">Painel de Decisão</h3>
+          <button
+            type="button"
+            onClick={() => setModoEdicao(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              border: '1px solid #451a1a', borderRadius: 6,
+              padding: '4px 12px', background: 'transparent',
+              color: '#451a1a', fontSize: 13, fontWeight: 500, cursor: 'pointer',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#f5eded')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+          >
+            <Edit2 size={13} />
+            Editar
+          </button>
+        </div>
+
+        {/* Badge de decisão */}
+        <div className="mb-4">
+          <p style={{ fontSize: 11, color: '#6b6966', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
+            Decisão
+          </p>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            background: badge.bg, color: badge.cor,
+            borderRadius: 6, padding: '4px 12px', fontSize: 13, fontWeight: 600,
+          }}>
+            {badge.icone} {decisaoAtual}
+          </span>
+        </div>
+
+        {/* Justificativa */}
+        <div className="mb-4">
+          <p style={{ fontSize: 11, color: '#6b6966', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>
+            Justificativa
+          </p>
+          <p style={{ fontSize: 13, color: '#1a1917', fontWeight: 400, fontStyle: 'italic', lineHeight: 1.5 }}>
+            &ldquo;{justificativaAtual || '—'}&rdquo;
+          </p>
+        </div>
+
+        {/* Campos aprovação */}
+        {decisaoAtual === 'Aprovada' && (
+          <div className="space-y-3 mb-4">
+            {responsavelExecucaoAtual && (
+              <Campo label="Responsável de execução" valor={responsavelExecucaoAtual} />
+            )}
+            {previsaoInicioAtual && (
+              <Campo label="Previsão de início" valor={fmtData(previsaoInicioAtual)} />
+            )}
+          </div>
+        )}
+
+        {/* ROI salvo */}
+        {roiEstimadoAtual != null && (
+          <div style={{ borderTop: '1px solid #ededeb', paddingTop: 12, marginTop: 4 }}>
+            <p style={{ fontSize: 11, color: '#6b6966', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
+              ROI Estimado
+            </p>
+            <p style={{ fontSize: 16, color: '#451a1a', fontWeight: 600 }}>
+              {roiEstimadoAtual.toFixed(1)}%
+            </p>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // ── Modo edição ───────────────────────────────────────────────────────────
   return (
     <div className="card p-5 space-y-4">
       <h3 className="font-semibold text-gray-900">Painel de Decisão</h3>
+
+      {/* Alerta de edição de decisão já salva */}
+      {temDecisaoSalva && (
+        <div style={{
+          background: '#fffbeb', border: '1px solid #f5c542', borderRadius: 8,
+          padding: '8px 12px', fontSize: 12, color: '#92400e', display: 'flex', gap: 6,
+        }}>
+          <span>⚠</span>
+          <span>Você está editando uma decisão já salva. As alterações substituirão os dados anteriores.</span>
+        </div>
+      )}
 
       {/* Decisão */}
       <div>
@@ -209,14 +337,25 @@ export default function PainelDecisao({ id, decisaoAtual, onDecisaoSalva }: Prop
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={salvar}
-        disabled={salvando}
-        className="btn-primary w-full py-2.5"
-      >
-        {salvando ? 'Salvando...' : 'Salvar Decisão'}
-      </button>
+      <div className="flex gap-2">
+        {temDecisaoSalva && (
+          <button
+            type="button"
+            onClick={() => setModoEdicao(false)}
+            className="flex-1 py-2.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            Cancelar
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={salvar}
+          disabled={salvando}
+          className={`btn-primary py-2.5 ${temDecisaoSalva ? 'flex-1' : 'w-full'}`}
+        >
+          {salvando ? 'Salvando...' : 'Salvar Decisão'}
+        </button>
+      </div>
     </div>
   )
 }

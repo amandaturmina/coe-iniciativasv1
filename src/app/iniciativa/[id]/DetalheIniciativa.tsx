@@ -70,6 +70,9 @@ interface Iniciativa {
   scorecard: Record<string, number>
   decisao: string | null
   justificativa: string | null
+  responsavel_execucao: string | null
+  previsao_inicio: string | null
+  roi_estimado: number | null
   lista_entregas: Entrega[] | null
   lista_raid: RaidItem[] | null
   lista_updates: UpdateItem[] | null
@@ -899,6 +902,10 @@ export default function DetalheIniciativa({ iniciativa: ini, perfil, autorNome }
             <PainelDecisao
               id={ini.id}
               decisaoAtual={ini.decisao ?? undefined}
+              justificativaAtual={ini.justificativa ?? undefined}
+              responsavelExecucaoAtual={ini.responsavel_execucao ?? undefined}
+              previsaoInicioAtual={ini.previsao_inicio ?? undefined}
+              roiEstimadoAtual={ini.roi_estimado ?? undefined}
               onDecisaoSalva={() => setRecarregar(r => r + 1)}
             />
           </div>
