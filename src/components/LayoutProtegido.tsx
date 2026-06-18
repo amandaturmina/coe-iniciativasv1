@@ -37,6 +37,7 @@ interface NavItem {
   Icon: React.ElementType
   perfis: string[]
   badge?: boolean
+  badgeKey?: 'fila' | 'backlog'
   dev?: boolean
 }
 
@@ -53,11 +54,11 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/dashboard',           label: 'Dashboard',              Icon: LayoutDashboard, perfis: ['colaborador', 'gestor', 'lideranca'], dev: true },
       { href: '/onboarding',          label: 'Onboarding de Projetos', Icon: ClipboardList,   perfis: ['gestor', 'lideranca'], dev: true },
       { href: '/fila',                label: 'Fila de Análise',        Icon: ListChecks,      perfis: ['gestor'], badge: true },
-      { href: '/acompanhamento',      label: 'Acompanhamento',         Icon: Kanban,          perfis: ['gestor', 'lideranca'], dev: true },
+      { href: '/acompanhamento',      label: 'Acompanhamento',         Icon: Kanban,          perfis: ['gestor', 'lideranca'] },
       { href: '/corporativos',        label: 'Projetos Corporativos',  Icon: Building2,       perfis: ['gestor', 'lideranca'], dev: true },
       { href: '/setoriais',           label: 'Projetos Setoriais',     Icon: Layers,          perfis: ['gestor', 'lideranca'], dev: true },
       { href: '/implantacoes',        label: 'Implantações de Hotéis', Icon: Hotel,           perfis: ['gestor', 'lideranca'], dev: true },
-      { href: '/backlog',             label: 'Backlog de Iniciativas', Icon: Archive,         perfis: ['gestor', 'lideranca'], dev: true },
+      { href: '/backlog',             label: 'Backlog de Iniciativas', Icon: Archive,         perfis: ['gestor', 'lideranca'], badge: true, badgeKey: 'backlog' },
       { href: '/relatorios-projetos', label: 'Relatórios de Projetos', Icon: BarChart2,       perfis: ['gestor', 'lideranca'], dev: true },
     ],
   },
@@ -85,8 +86,9 @@ export default function LayoutProtegido({ children }: { children: React.ReactNod
   const [profile,    setProfile]    = useState<Profile | null>(null)
   const [carregando, setCarregando] = useState(true)
   const [collapsed,  setCollapsed]  = useState(false)
-  const [filaBadge,  setFilaBadge]  = useState<number>(0)
-  const [toast,      setToast]      = useState<string | null>(null)
+  const [filaBadge,    setFilaBadge]    = useState<number>(0)
+  const [backlogBadge, setBacklogBadge] = useState<number>(0)
+  const [toast,        setToast]        = useState<string | null>(null)
 
   useEffect(() => {
     const saved = localStorage.getItem('sidebar-collapsed')
@@ -117,14 +119,23 @@ export default function LayoutProtegido({ children }: { children: React.ReactNod
   }, [])
 
   useEffect(() => {
-    async function fetchFilaCount() {
-      const { count } = await supabase
-        .from('iniciativas')
-        .select('id', { count: 'exact', head: true })
-        .in('status', ['Recebida', 'Em análise'])
-      setFilaBadge(count ?? 0)
+    async function fetchBadges() {
+      const [{ count: fila }, { count: backlog }] = await Promise.all([
+        supabase.from('iniciativas').select('id', { count: 'exact', head: true }).in('status', ['Recebida', 'Em análise']),
+        supabase.from('iniciativas').select('id', { count: 'exact', head: true }).in('status', ['Recusada', 'Aguardar ciclo']),
+      ])
+      setFilaBadge(fila ?? 0)
+      setBacklogBadge(backlog ?? 0)
     }
-    fetchFilaCount()
+    fetchBadges()
+  }, [pathname])
+
+  useEffect(() => {
+    const msg = sessionStorage.getItem('toast')
+    if (msg) {
+      sessionStorage.removeItem('toast')
+      showToast(msg)
+    }
   }, [pathname])
 
   function showToast(msg: string) {
@@ -187,7 +198,7 @@ export default function LayoutProtegido({ children }: { children: React.ReactNod
                   </p>
                 )}
                 <div className="space-y-0.5">
-                  {visiveis.map(({ href, label, Icon, badge, dev }) => {
+                  {visiveis.map(({ href, label, Icon, badge, badgeKey, dev }) => {
                     const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
 
                     if (dev) {
@@ -224,7 +235,12 @@ export default function LayoutProtegido({ children }: { children: React.ReactNod
                         {!collapsed && (
                           <>
                             <span className="flex-1 truncate">{label}</span>
-                            {badge && filaBadge > 0 && (
+                            {badge && badgeKey === 'backlog' && backlogBadge > 0 && (
+                              <span className="ml-auto bg-[#451a1a] text-white text-[9px] font-semibold px-[5px] py-[1px] rounded-full leading-none">
+                                {backlogBadge}
+                              </span>
+                            )}
+                            {badge && badgeKey !== 'backlog' && filaBadge > 0 && (
                               <span className="ml-auto bg-[#451a1a] text-white text-[9px] font-semibold px-[5px] py-[1px] rounded-full leading-none">
                                 {filaBadge}
                               </span>

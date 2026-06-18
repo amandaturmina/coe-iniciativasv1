@@ -42,7 +42,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (body.decisao) {
     body.data_decisao = new Date().toISOString()
     body.decidido_por = user.id
-    body.status = body.decisao
+    // Aprovada entra no kanban em 'Em planejamento'; demais vão para backlog
+    body.status = body.decisao === 'Aprovada' ? 'Em planejamento' : body.decisao
   }
 
   const { data, error } = await supabase

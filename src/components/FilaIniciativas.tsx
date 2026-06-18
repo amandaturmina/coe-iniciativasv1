@@ -26,7 +26,7 @@ export default function FilaIniciativas() {
   const [iniciativas, setIniciativas] = useState<Iniciativa[]>([])
   const [carregando, setCarregando] = useState(true)
   const [busca, setBusca] = useState('')
-  const [filtroStatus, setFiltroStatus] = useState<string[]>([])
+  const [filtroStatus, setFiltroStatus] = useState<string[]>(['Recebida', 'Em análise'])
   const [filtroArea, setFiltroArea] = useState<string[]>([])
   const [filtroTipo, setFiltroTipo] = useState('')
   const [ordem, setOrdem] = useState<OrdemCampo>('score')

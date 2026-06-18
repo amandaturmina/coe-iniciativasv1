@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { Edit2 } from 'lucide-react'
 
 interface Props {
@@ -65,6 +66,7 @@ export default function PainelDecisao({
   roiEstimadoAtual,
   onDecisaoSalva,
 }: Props) {
+  const router = useRouter()
   const temDecisaoSalva = !!(decisaoAtual && decisaoAtual !== '')
   const [modoEdicao, setModoEdicao] = useState(!temDecisaoSalva)
 
@@ -127,13 +129,21 @@ export default function PainelDecisao({
 
     setSalvando(false)
     if (res.ok) {
-      setToast('Decisão salva com sucesso!')
-      setModoEdicao(false)
       onDecisaoSalva()
+      if (decisao === 'Aprovada') {
+        sessionStorage.setItem('toast', 'Iniciativa aprovada e enviada para Acompanhamento')
+        router.push('/acompanhamento')
+      } else {
+        const msg = decisao === 'Recusada'
+          ? 'Iniciativa recusada e movida para o Backlog'
+          : 'Iniciativa movida para o Backlog — aguardando próximo ciclo'
+        sessionStorage.setItem('toast', msg)
+        router.push('/backlog')
+      }
     } else {
       setToast('Erro ao salvar decisão')
+      setTimeout(() => setToast(''), 3000)
     }
-    setTimeout(() => setToast(''), 3000)
   }
 
   // ── Modo visualização ─────────────────────────────────────────────────────

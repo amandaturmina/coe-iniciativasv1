@@ -95,6 +95,7 @@ interface Iniciativa {
 const COLUNAS = [
   { id: 'Em planejamento', label: 'Em planejamento', borderCor: 'border-blue-400',   bg: 'bg-blue-50',   badge: 'bg-blue-100 text-blue-700' },
   { id: 'Em andamento',    label: 'Em andamento',    borderCor: 'border-yellow-400', bg: 'bg-yellow-50', badge: 'bg-yellow-100 text-yellow-700' },
+  { id: 'Em validação',    label: 'Em validação',    borderCor: 'border-purple-400', bg: 'bg-purple-50', badge: 'bg-purple-100 text-purple-700' },
   { id: 'Concluída',       label: 'Concluída',       borderCor: 'border-green-400',  bg: 'bg-green-50',  badge: 'bg-green-100 text-green-700' },
   { id: 'Pausada',         label: 'Pausada',         borderCor: 'border-gray-300',   bg: 'bg-gray-50',   badge: 'bg-gray-100 text-gray-500' },
 ]
@@ -385,10 +386,10 @@ export default function KanbanBoard() {
         setNomeUsuario(profile?.nome ?? 'Usuário')
       }
 
-      const res = await fetch('/api/iniciativas?status=Em planejamento,Em andamento,Concluída,Pausada')
+      const res = await fetch('/api/iniciativas?status=Em planejamento,Em andamento,Em validação,Concluída,Pausada')
       const json = await res.json()
       setIniciativas((json.dados ?? []).filter((i: Iniciativa) =>
-        ['Em planejamento', 'Em andamento', 'Concluída', 'Pausada'].includes(i.status)
+        ['Em planejamento', 'Em andamento', 'Em validação', 'Concluída', 'Pausada'].includes(i.status)
       ))
       setCarregando(false)
     }
